@@ -8,25 +8,27 @@ import java.util.List;
  * This class is used to store a query sequence.
  */
 public class Query {
-  List<String> queryWords;
-    
-  /**
-   * Constructs a query.
-   * @param query the query String.
-   */
-  public Query(String query) {
-    queryWords = new ArrayList<String>(Arrays.asList(query.split(" ")));
-  }
+    List<String> queryWords;
 
-  /**
-   * Returns a String representation of the Query.
-   * @return the Query as a String
-   */
-  public String toString() {
-    String str = "";
-    for (String word : queryWords) {
-      str += word + " ";
+    /**
+     * Constructs a query.
+     *
+     * @param query the query String.
+     */
+    public Query(String query) {
+        queryWords = new ArrayList<String>(Arrays.asList(query.split(" ")));
     }
-    return str.trim();
-  }
+
+    /**
+     * Returns a String representation of the Query.
+     *
+     * @return the Query as a String
+     */
+    public String toString() {
+        String str = "";
+        for (String word : queryWords) {
+            str += word + " ";
+        }
+        return str.trim();
+    }
 }
