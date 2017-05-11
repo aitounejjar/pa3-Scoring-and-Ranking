@@ -2,6 +2,7 @@ package edu.stanford.cs276;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
@@ -10,8 +11,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * This class is used to
@@ -19,6 +22,9 @@ import java.util.Map;
  * 2) build idf from data collections in PA1.
  */
 public class LoadHandler {
+
+    public static final String UNSEEN_TERM_ID = "unseen term id";
+
     /**
      * Loads the training data.
      *
@@ -31,7 +37,6 @@ public class LoadHandler {
             System.err.println("Invalid feature file name: " + feature_file_name);
             return null;
         }
-
         BufferedReader reader = new BufferedReader(new FileReader(feature_file));
         String line = null, url = null, anchor_text = null;
         Query query = null;
@@ -118,7 +123,7 @@ public class LoadHandler {
      * @param idfFile the file containing the idfs.
      * @return the term-doc counts
      */
-    public static Map<String, Double> buildDFs(String dataDir, String idfFile) {
+    public static Map<String, Double> buildDFs(String dataDir, String idfFile) throws IOException {
         // Get root directory
         String root = dataDir;
         File rootdir = new File(root);
@@ -127,32 +132,83 @@ public class LoadHandler {
             return null;
         }
 
-        // Array of all the blocks (sub directories) in the PA1 corpus
-        File[] dirlist = rootdir.listFiles();
+        /* A filter to get rid of all files starting with .*/
+        FileFilter filter = new FileFilter() {
+            @Override
+            public boolean accept(File pathname) {
+                String name = pathname.getName();
+                return !name.startsWith(".");
+            }
+        };
 
-        int totalDocCount = 0;
+        // Array of all the blocks (sub directories) in the PA1 corpus
+        File[] dirlist = rootdir.listFiles(filter);
 
         // Count number of documents in which each term appears
-        Map<String, Double> termDocCount = new HashMap<String, Double>();
+        Map<String, Double> termDocCount = new HashMap<>();
     
-    /*
-     * TODO: Your code here.
-     * For each file in each block, accumulate counts for:
-     * 1) Total number of documents
-     * 2) Total number of documents containing each term
-     * Hint: consult PA1 for how to load each file in each block
-     */
+        /*
+         * TODO: Your code here.
+         * For each file in each block, accumulate counts for:
+         * 1) Total number of documents
+         * 2) Total number of documents containing each term
+         * Hint: consult PA1 for how to load each file in each block
+         */
+
+        // counts the total number of documents encountered
+        int N = 0;
+
+        for (File block : dirlist) {
+
+            File blockDir = new File(root, block.getName());
+            File[] filelist = blockDir.listFiles(filter);
+
+            for (File file : filelist) {
+                N++;
+                String filename = block.getName() + "/" + file.getName();
+                Set<String> set = new HashSet<>();
+                BufferedReader reader = new BufferedReader(new FileReader(file));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String[] tokens = line.trim().split("\\s+");
+                    for (String term : tokens) {
+                        if (!set.contains(term+filename)) {
+                            set.add(term+filename);
+                            double count = 0.0;
+                            if (termDocCount.containsKey(term)) {
+                                count = termDocCount.get(term);
+                            }
+                            termDocCount.put(term, ++count);
+                        }
+                    }
+                }
+            }
+        }
+
+
 
         // Compute inverse document frequencies using document frequencies
         for (String term : termDocCount.keySet()) {
-      /*
-       * TODO : Your code here
-       * Remember that it's possible for a term to not appear 
-       * in the collection corpus.
-       * Thus to guard against such a case, we will apply 
-       * Laplace add-one smoothing.
-       */
+
+          /*
+           * TODO : Your code here
+           * Remember that it's possible for a term to not appear in the collection corpus.
+           * Thus to guard against such a case, we will apply Laplace add-one smoothing.
+           */
+            double df = termDocCount.get(term);
+
+            // apply Laplace add-1 smoothing to the term's document frequency
+            df = (df+1) / (N+1);
+
+            // compute the term's inverted document frequency (idf)
+            double idf = Math.log10(N/df);
+
+            termDocCount.put(term, idf);
         }
+
+        //
+        double unseenIdfScore = 1.0 / (N + 1.0);
+        termDocCount.put(UNSEEN_TERM_ID, unseenIdfScore);
 
         // Save to file
         try {

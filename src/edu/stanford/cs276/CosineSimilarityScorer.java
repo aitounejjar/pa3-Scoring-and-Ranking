@@ -1,5 +1,7 @@
 package edu.stanford.cs276;
 
+import edu.stanford.cs276.util.Config;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -61,11 +63,22 @@ public class CosineSimilarityScorer extends AScorer {
      * @param q   the Query
      */
     public void normalizeTFs(Map<String, Map<String, Double>> tfs, Document d, Query q) {
-  /*
-     * TODO : Your code here
-     * Note that we should give uniform normalization to all 
-     * fields as discussed in the assignment handout.
-     */
+
+        /*
+         * TODO : Your code here
+         * Note that we should give uniform normalization to all
+         * fields as discussed in the assignment handout.
+         */
+
+        int bodyLengthSmoother = d.body_length + Config.BODY_LENGTH_SMOOTHING;
+
+        for (String tfType : tfs.keySet()) {
+            Map<String, Double> map = tfs.get(tfType);
+            for (String w : map.keySet()) {
+                double adjusted = map.get(w) / bodyLengthSmoother;
+                map.put(w, adjusted);
+            }
+        }
     }
 
     /**

@@ -1,6 +1,7 @@
 package edu.stanford.cs276;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -51,14 +52,18 @@ public abstract class AScorer {
         // queryWord -> term frequency
         Map<String, Double> tfQuery = new HashMap<String, Double>();
 
-    /*
-     * TODO : Your code here
-     * Compute the raw term (and/or sublinearly scaled) frequencies
-     * Additionally weight each of the terms using the idf value
-     * of the term in the query (we use the PA1 corpus to determine
-     * how many documents contain the query terms which is stored
-     * in this.idfs).
-     */
+        /*
+         * TODO : Your code here
+         * Compute the raw term (and/or sublinearly scaled) frequencies
+         * Additionally weight each of the terms using the idf value
+         * of the term in the query (we use the PA1 corpus to determine
+         * how many documents contain the query terms which is stored
+         * in this.idfs).
+         */
+
+        for (String word : q.queryWords) {
+            // TBD ...
+        }
 
         return tfQuery;
     }
@@ -85,24 +90,79 @@ public abstract class AScorer {
      */
     public Map<String, Map<String, Double>> getDocTermFreqs(Document d, Query q) {
 
-        // Map from tf type -> queryWord -> score
-        Map<String, Map<String, Double>> tfs = new HashMap<String, Map<String, Double>>();
-    
-    /*
-     * TODO : Your code here
-     * Initialize any variables needed
-     */
+        // Map from (tf type) -> [(queryWord -> score)]
+        Map<String, Map<String, Double>> tfs = new HashMap<>();
+        tfs.put("url", new HashMap<>());
+        tfs.put("title", new HashMap<>());
+        tfs.put("body", new HashMap<>());
+        tfs.put("header", new HashMap<>());
+        tfs.put("anchor", new HashMap<>());
+
+        /*
+         * TODO : Your code here
+         * Initialize any variables needed
+         */
 
         for (String queryWord : q.queryWords) {
-      /*
-       * Your code here
-       * Loop through query terms and accumulate term frequencies. 
-       * Note: you should do this for each type of term frequencies,
-       * i.e. for each of the different fields.
-       * Don't forget to lowercase the query word.
-       */
+
+          /*
+           * Your code here
+           * Loop through query terms and accumulate term frequencies.
+           * Note: you should do this for each type of term frequencies,
+           * i.e. for each of the different fields.
+           * Don't forget to lowercase the query word.
+           */
+
+            queryWord = queryWord.toLowerCase();
+
+            // url counts
+            if (tfs.get("url").get(queryWord) != null) {
+                int numOccurrences = countOccurrences(queryWord, d.url);
+                if (numOccurrences > 0) {
+                    tfs.get("url").put(queryWord, (double)numOccurrences);
+                }
+            }
+
+            // title counts
+            if (tfs.get("title").get(queryWord) != null) {
+                int numOccurrences = countOccurrences(queryWord, d.title);
+                if (numOccurrences > 0) {
+                    tfs.get("title").put(queryWord, (double)numOccurrences);
+                }
+            }
+
+            // body counts
+            if (d.body_hits.keySet().contains(queryWord)) {
+                int numOccurrences = d.body_hits.get(queryWord).size();
+                tfs.get("body").put(queryWord, (double)numOccurrences);
+            }
+
+            // header counts
+            List<String> headers = d.headers;
+            int numOccurrences = 0;
+            if (headers != null) {
+                for (String header : headers) {
+                    numOccurrences += countOccurrences(queryWord, header);
+                }
+                tfs.get("header").put(queryWord, (double)numOccurrences);
+            }
+
+            // anchor counts
+            Map<String, Integer> anchors = d.anchors;
+            numOccurrences = 0;
+            if (anchors != null) {
+                for (String anchor : anchors.keySet()) {
+                    numOccurrences += countOccurrences(queryWord, anchor);
+                }
+            }
+
         }
         return tfs;
+    }
+
+    private int countOccurrences(String of, String inside) {
+        String[] matches = inside.split(of);
+        return Math.max(0, matches.length - 1);
     }
 
 }
