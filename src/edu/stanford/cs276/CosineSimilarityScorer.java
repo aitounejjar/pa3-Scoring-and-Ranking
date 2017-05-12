@@ -46,12 +46,45 @@ public class CosineSimilarityScorer extends AScorer {
     public double getNetScore(Map<String, Map<String, Double>> tfs, Query q, Map<String, Double> tfQuery, Document d) {
         double score = 0.0;
     
-    /*
-     * TODO : Your code here
-     * See Equation 2 in the handout regarding the net score
-     * between a query vector and the term score vectors
-     * for a document.
-     */
+        /*
+         * TODO : Your code here
+         * See Equation 2 in the handout regarding the net score between a query vector and the term score
+         * vectors for a document.
+         *
+         */
+
+
+        for (String term : q.queryWords) {
+            // compute the tf-idf weight of the term (weight = tf x idf)
+            double tf = 1 + Math.log10(tfQuery.get(term));
+
+            double idf = idfs.containsKey(term) ? idfs.get(term) : idfs.get(LoadHandler.UNSEEN_TERM_ID);
+            double tfIdfWeight = tf * idf;
+
+            // loop over sections: "url", "title", "body", "header", "anchor"
+            double sectionScores = 0.0;
+            for (String section : tfs.keySet()) {
+                Map<String, Double> numbers = tfs.get(section);
+                double sectionWeight;
+                switch (section) {
+                    case "url"      : sectionWeight = urlweight;    break;
+                    case "title"    : sectionWeight = titleweight;  break;
+                    case "body"     : sectionWeight = bodyweight;   break;
+                    case "header"   : sectionWeight = headerweight; break;
+                    case "anchor"   : sectionWeight = anchorweight; break;
+                    default         : throw new RuntimeException("Illegal section type of '" + section + "' was found in the tfs map.");
+                }
+
+                double sectionScore = sectionWeight * (tfs.get(section).containsKey(term) ? tfs.get(section).get(term) : 0.0);
+                sectionScores += sectionScore;
+            } // end inner for loop
+
+            // do the multiplication in equation (2)
+            score += tfIdfWeight * sectionScores;
+
+        } // end outer for loop
+
+
         return score;
     }
 

@@ -50,7 +50,7 @@ public abstract class AScorer {
     public Map<String, Double> getQueryFreqs(Query q) {
 
         // queryWord -> term frequency
-        Map<String, Double> tfQuery = new HashMap<String, Double>();
+        Map<String, Double> tfQuery = new HashMap<>();
 
         /*
          * TODO : Your code here
@@ -62,7 +62,12 @@ public abstract class AScorer {
          */
 
         for (String word : q.queryWords) {
-            // TBD ...
+            double count = 1;
+            word = word.toLowerCase();
+            if (tfQuery.containsKey(word)) {
+                count += tfQuery.get(word);
+            }
+            tfQuery.put(word, count);
         }
 
         return tfQuery;
@@ -117,17 +122,17 @@ public abstract class AScorer {
 
             // url counts
             if (tfs.get("url").get(queryWord) != null) {
-                int numOccurrences = countOccurrences(queryWord, d.url);
+                double numOccurrences = countOccurrences(queryWord, d.url);
                 if (numOccurrences > 0) {
-                    tfs.get("url").put(queryWord, (double)numOccurrences);
+                    tfs.get("url").put(queryWord, numOccurrences);
                 }
             }
 
             // title counts
             if (tfs.get("title").get(queryWord) != null) {
-                int numOccurrences = countOccurrences(queryWord, d.title);
+                double numOccurrences = countOccurrences(queryWord, d.title);
                 if (numOccurrences > 0) {
-                    tfs.get("title").put(queryWord, (double)numOccurrences);
+                    tfs.get("title").put(queryWord, numOccurrences);
                 }
             }
 
@@ -141,12 +146,12 @@ public abstract class AScorer {
 
             // header counts
             List<String> headers = d.headers;
-            int numOccurrences = 0;
+            double numOccurrences = 0;
             if (headers != null) {
                 for (String header : headers) {
                     numOccurrences += countOccurrences(queryWord, header);
                 }
-                tfs.get("header").put(queryWord, (double)numOccurrences);
+                tfs.get("header").put(queryWord, numOccurrences);
             }
 
             // anchor counts
@@ -156,6 +161,7 @@ public abstract class AScorer {
                 for (String anchor : anchors.keySet()) {
                     numOccurrences += countOccurrences(queryWord, anchor);
                 }
+                tfs.get("anchor").put(queryWord, numOccurrences);
             }
 
         }

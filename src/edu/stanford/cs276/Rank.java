@@ -1,14 +1,17 @@
 package edu.stanford.cs276;
 
-import java.io.*;
+import edu.stanford.cs276.util.Pair;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Comparator;
-
-import edu.stanford.cs276.util.Pair;
 
 /**
  * The entry class for this programming assignment.
@@ -61,16 +64,16 @@ public class Rank {
                 docAndScores.add(new Pair<Document, Double>(doc, score));
             }
 
-      /* Sort urls for query based on scores. */
+            /* Sort urls for query based on scores. */
             Collections.sort(docAndScores, new Comparator<Pair<Document, Double>>() {
                 @Override
-                public int compare(Pair<Document, Double> o1, Pair<Document, Double> o2) {
-          /*
-           * TODO : Your code here
-           * Define a custom compare function to help sort urls
-           * urls for a query based on scores.
-           */
-                    return 0;
+                public int compare(Pair<Document, Double> pair1, Pair<Document, Double> pair2) {
+                  /*
+                   * TODO : Your code here
+                   * Define a custom compare function to help sort urls
+                   * urls for a query based on scores.
+                   */
+                    return pair2.getSecond().compareTo(pair1.getSecond());
                 }
             });
 
