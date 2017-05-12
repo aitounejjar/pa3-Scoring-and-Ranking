@@ -132,9 +132,11 @@ public abstract class AScorer {
             }
 
             // body counts
-            if (d.body_hits.keySet().contains(queryWord)) {
-                int numOccurrences = d.body_hits.get(queryWord).size();
-                tfs.get("body").put(queryWord, (double)numOccurrences);
+            if (d.body_hits != null) {
+                if (d.body_hits.keySet().contains(queryWord)) {
+                    int numOccurrences = d.body_hits.get(queryWord).size();
+                    tfs.get("body").put(queryWord, (double) numOccurrences);
+                }
             }
 
             // header counts
