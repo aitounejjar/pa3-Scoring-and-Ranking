@@ -1,7 +1,5 @@
 package edu.stanford.cs276;
 
-import edu.stanford.cs276.util.Config;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -18,12 +16,13 @@ public class CosineSimilarityScorer extends AScorer {
      * TODO: You will want to tune the values for
      * the weights for each field.
      */
-    double urlweight = 0.1;
-    double titleweight = 0.1;
-    double bodyweight = 0.1;
-    double headerweight = 0.1;
-    double anchorweight = 0.1;
-    double smoothingBodyLength = 1.0;
+
+    double urlweight            = 10;
+    double titleweight          = 8;
+    double headerweight         = 7;
+    double anchorweight         = 10;
+    double bodyweight           = 5;
+    double smoothingBodyLength  = 1000;
 
     /**
      * Construct a Cosine Similarity Scorer.
@@ -48,42 +47,41 @@ public class CosineSimilarityScorer extends AScorer {
     
         /*
          * TODO : Your code here
-         * See Equation 2 in the handout regarding the net score between a query vector and the term score
-         * vectors for a document.
+         * See Equation 2 in the handout regarding the net score between "a query vector" and "the term score vector for the document".
          *
          */
 
 
+        double queryLength = 0.0;
+        double documentLength = 0.0;
         for (String term : q.queryWords) {
-            // compute the tf-idf weight of the term (weight = tf x idf)
-            double tf = 1 + Math.log10(tfQuery.get(term));
 
+            // compute the tf-idf weight of the term (weight = tf x idf)
+            double tf = tfQuery.get(term);//1 + Math.log(tfQuery.get(term));
             double idf = idfs.containsKey(term) ? idfs.get(term) : idfs.get(LoadHandler.UNSEEN_TERM_ID);
             double tfIdfWeight = tf * idf;
+            queryLength += Math.pow(tfIdfWeight, 2);
 
             // loop over sections: "url", "title", "body", "header", "anchor"
             double sectionScores = 0.0;
             for (String section : tfs.keySet()) {
-                Map<String, Double> numbers = tfs.get(section);
-                double sectionWeight;
-                switch (section) {
-                    case "url"      : sectionWeight = urlweight;    break;
-                    case "title"    : sectionWeight = titleweight;  break;
-                    case "body"     : sectionWeight = bodyweight;   break;
-                    case "header"   : sectionWeight = headerweight; break;
-                    case "anchor"   : sectionWeight = anchorweight; break;
-                    default         : throw new RuntimeException("Illegal section type of '" + section + "' was found in the tfs map.");
-                }
-
+                double sectionWeight = getSectionWeight(section);
                 double sectionScore = sectionWeight * (tfs.get(section).containsKey(term) ? tfs.get(section).get(term) : 0.0);
                 sectionScores += sectionScore;
             } // end inner for loop
 
+            // update the document length
+            documentLength += Math.pow(sectionScores, 2);
+
             // do the multiplication in equation (2)
-            score += tfIdfWeight * sectionScores;
+            score += (tfIdfWeight * sectionScores);
 
         } // end outer for loop
 
+        queryLength = Math.sqrt(queryLength);
+        documentLength = Math.sqrt(documentLength);
+
+        //score /= (queryLength * documentLength);
 
         return score;
     }
@@ -103,12 +101,12 @@ public class CosineSimilarityScorer extends AScorer {
          * fields as discussed in the assignment handout.
          */
 
-        int bodyLengthSmoother = d.body_length + Config.BODY_LENGTH_SMOOTHING;
+        double bodyLengthSmoother = d.body_length + smoothingBodyLength;
 
         for (String tfType : tfs.keySet()) {
             Map<String, Double> map = tfs.get(tfType);
             for (String w : map.keySet()) {
-                double adjusted = map.get(w) / bodyLengthSmoother;
+                double adjusted = Math.log10(1+map.get(w)) / bodyLengthSmoother;
                 map.put(w, adjusted);
             }
         }
@@ -153,14 +151,34 @@ public class CosineSimilarityScorer extends AScorer {
      * @return the similarity score.
      */
     public double getSimScore(Document d, Query q) {
-        Map<String, Map<String, Double>> tfs = this.getDocTermFreqs(d, q);
-        this.normalizeTFs(tfs, d, q);
+
+        // get document term frequencies
+        Map<String, Map<String, Double>> docTermFreqs = this.getDocTermFreqs(d, q);
+
+        // normalize the document term frequencies
+        this.normalizeTFs(docTermFreqs, d, q);
+
+        // get query term frequencies, no normalization needed for these
         Map<String, Double> tfQuery = getQueryFreqs(q);
 
         // Write out tuned cosineSimilarity parameters
         // This is only used for grading purposes.
         // You should NOT modify the writeParaValues method.
         writeParaValues("cosinePara.txt");
-        return getNetScore(tfs, q, tfQuery, d);
+
+        return getNetScore(docTermFreqs, q, tfQuery, d);
+    }
+
+    private double getSectionWeight(String section) {
+        double sectionWeight;
+        switch (section) {
+            case "url"      : sectionWeight = urlweight;    break;
+            case "title"    : sectionWeight = titleweight;  break;
+            case "body"     : sectionWeight = bodyweight;   break;
+            case "header"   : sectionWeight = headerweight; break;
+            case "anchor"   : sectionWeight = anchorweight; break;
+            default         : throw new RuntimeException("Illegal section type of '" + section + "' was found in the tfs map.");
+        }
+        return sectionWeight;
     }
 }

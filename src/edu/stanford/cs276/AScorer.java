@@ -123,31 +123,29 @@ public abstract class AScorer {
             // url counts
             if (tfs.get("url").get(queryWord) != null) {
                 double numOccurrences = countOccurrences(queryWord, d.url);
-                if (numOccurrences > 0) {
-                    tfs.get("url").put(queryWord, numOccurrences);
-                }
+                tfs.get("url").put(queryWord, numOccurrences);
+
             }
 
             // title counts
             if (tfs.get("title").get(queryWord) != null) {
                 double numOccurrences = countOccurrences(queryWord, d.title);
-                if (numOccurrences > 0) {
-                    tfs.get("title").put(queryWord, numOccurrences);
-                }
+                tfs.get("title").put(queryWord, numOccurrences);
             }
 
             // body counts
             if (d.body_hits != null) {
+                double numOccurrences = 0;
                 if (d.body_hits.keySet().contains(queryWord)) {
-                    int numOccurrences = d.body_hits.get(queryWord).size();
-                    tfs.get("body").put(queryWord, (double) numOccurrences);
+                    numOccurrences = d.body_hits.get(queryWord).size();
+                    tfs.get("body").put(queryWord, numOccurrences);
                 }
             }
 
             // header counts
             List<String> headers = d.headers;
-            double numOccurrences = 0;
             if (headers != null) {
+                double numOccurrences = 0;
                 for (String header : headers) {
                     numOccurrences += countOccurrences(queryWord, header);
                 }
@@ -156,10 +154,14 @@ public abstract class AScorer {
 
             // anchor counts
             Map<String, Integer> anchors = d.anchors;
-            numOccurrences = 0;
+
+
+
             if (anchors != null) {
+                double numOccurrences = 0;
                 for (String anchor : anchors.keySet()) {
-                    numOccurrences += countOccurrences(queryWord, anchor);
+                    int anchorCount = anchors.get(anchor);
+                    numOccurrences += (anchorCount * countOccurrences(queryWord, anchor));
                 }
                 tfs.get("anchor").put(queryWord, numOccurrences);
             }
@@ -168,9 +170,14 @@ public abstract class AScorer {
         return tfs;
     }
 
-    private int countOccurrences(String of, String inside) {
-        String[] matches = inside.split(of);
-        return Math.max(0, matches.length - 1);
+    private int countOccurrences(String pattern, String string) {
+        int count = 0;
+        while (string.contains(pattern)) {
+            ++count;
+            string = string.replaceFirst(pattern, "");
+        }
+
+        return count;
     }
 
 }
