@@ -17,7 +17,7 @@ public class CosineSimilarityScorer extends AScorer {
      * the weights for each field.
      */
 
-    double urlweight            = 10;
+    double urlweight            = 9;
     double titleweight          = 8;
     double headerweight         = 7;
     double anchorweight         = 10;

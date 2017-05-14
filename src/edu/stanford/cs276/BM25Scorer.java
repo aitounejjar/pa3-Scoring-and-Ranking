@@ -183,7 +183,15 @@ public class BM25Scorer extends AScorer {
 
             /* compute W(d,t) in equation (4) */
             double w_dt = 0; //TBD
-
+            for (String section : tfs.keySet()) {
+                double Weight = getSectionWeight(section);
+                if (tfs.containsKey(section) ) {
+                    if (tfs.get(section).containsKey(t)) {
+                        double fdtf = tfs.get(section).get(t);
+                        w_dt += Weight * fdtf;
+                    }
+                }
+            }
 
             /* compute equation (5) for the term t */
             double idf = idfs.containsKey(t) ? idfs.get(t) : idfs.get(LoadHandler.UNSEEN_TERM_ID);
@@ -291,6 +299,20 @@ public class BM25Scorer extends AScorer {
         writeParaValues("bm25Para.txt");
         return getNetScore(tfs, q, tfQuery, d);
     }
+
+    private double getSectionWeight(String section) {
+        double sectionWeight;
+        switch (section) {
+            case "url"      : sectionWeight = urlweight;    break;
+            case "title"    : sectionWeight = titleweight;  break;
+            case "body"     : sectionWeight = bodyweight;   break;
+            case "header"   : sectionWeight = headerweight; break;
+            case "anchor"   : sectionWeight = anchorweight; break;
+            default         : throw new RuntimeException("Illegal section type of '" + section + "' was found in the tfs map.");
+        }
+        return sectionWeight;
+    }
+
 
     private double getSectionBWeight(String section) {
         double sectionBWeight;
