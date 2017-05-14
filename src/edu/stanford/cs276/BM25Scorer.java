@@ -4,7 +4,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +36,8 @@ public class BM25Scorer extends AScorer {
     // query -> url -> document
     Map<Query, Map<String, Document>> queryDict;
 
-    // BM25 data structures--feel free to modify these
+    /* BM25 data structures--feel free to modify these */
+
     // Document -> field -> length
     Map<Document, Map<String, Double>> lengths;
 
@@ -63,23 +63,97 @@ public class BM25Scorer extends AScorer {
      * Set up average lengths for BM25, also handling PageRank.
      */
     public void calcAverageLengths() {
-        lengths = new HashMap<Document, Map<String, Double>>();
-        avgLengths = new HashMap<String, Double>();
-        pagerankScores = new HashMap<Document, Double>();
-    
-    /*
-     * TODO : Your code here
-     * Initialize any data structures needed, perform
-     * any preprocessing you would like to do on the fields,
-     * handle pagerank, accumulate lengths of fields in documents.        
-     */
+        lengths = new HashMap<>();
+        avgLengths = new HashMap<>();
+        pagerankScores = new HashMap<>();
+
+        /*
+         * TODO : Your code here
+         * Initialize any data structures needed, perform
+         * any preprocessing you would like to do on the fields,
+         * handle pagerank, accumulate lengths of fields in documents.
+         */
+
+        int bodyCount   = 0, bodyWordsCount   = 0;
+        int headerCount = 0, headerWordsCount = 0;
+        int anchorCount = 0, anchorWordsCount = 0;
+        int titleCount  = 0, titleWordsCount  = 0;
+        int urlCount    = 0, urlWordsCount    = 0;
+
+        for (Query query : queryDict.keySet()) {
+            Map<String, Document> map = queryDict.get(query);
+            for (String url : map.keySet()) {
+                Document document = map.get(url);
+                if (lengths.containsKey(document)) {
+                    continue; // this document has already been parsed
+                }
+
+                // page rank
+                pagerankScores.put(document, (double)document.page_rank);
+
+                // body
+                bodyWordsCount += document.body_length;
+                bodyCount++;
+                lengths.put(document, new HashMap<>());
+                lengths.get(document).put("body", (double)document.body_length);
+
+                // header
+                List<String> headers = document.headers;
+                if (headers != null) {
+                    int numHeaders = 0; // num of headers in the current document
+                    for (String header : headers) {
+                        String[] matches = header.split("\\s+");
+                        headerWordsCount += matches.length;
+                        numHeaders += matches.length;
+                        headerCount++;
+                    }
+                    lengths.get(document).put("header", (double)numHeaders);
+                }
+
+                // anchor
+                Map<String, Integer> anchors = document.anchors;
+                if (anchors != null) {
+                    int numAnchors = 0; // num of anchors in the current document
+                    for (String anchor : anchors.keySet()) {
+                        String[] matches = anchor.split("\\s+");
+                        anchorWordsCount += matches.length;
+                        numAnchors += matches.length;
+                        anchorCount++;
+                    }
+                    lengths.get(document).put("anchor", (double)numAnchors);
+                }
+
+                // title
+                if (document.title != null) {
+                    String[] matches = document.title.split("\\s+");
+                    titleWordsCount += matches.length;
+                    titleCount++;
+                    lengths.get(document).put("title", (double)matches.length);
+                }
+
+                // url
+                if (document.url != null) {
+                    String[] matches = document.url.split("\\W+");
+                    urlWordsCount += matches.length;
+                    urlCount++;
+                    lengths.get(document).put("url", (double)matches.length);
+                }
+            }
+        }
+
+        // compute averages
+        avgLengths.put("body",   bodyWordsCount/(double)bodyCount);
+        avgLengths.put("header", headerWordsCount/(double)headerCount);
+        avgLengths.put("anchor", anchorWordsCount/(double)anchorCount);
+        avgLengths.put("title",  titleWordsCount/(double)titleCount);
+        avgLengths.put("url",    urlWordsCount/(double)urlCount);
 
         for (String tfType : this.TFTYPES) {
-    /*
-     * TODO : Your code here
-     * Normalize lengths to get average lengths for
-     * each field (body, url, title, header, anchor)
-     */
+            /*
+             * TODO : Your code here
+             * Normalize lengths to get average lengths for
+             * each field (body, url, title, header, anchor)
+             */
         }
 
     }
