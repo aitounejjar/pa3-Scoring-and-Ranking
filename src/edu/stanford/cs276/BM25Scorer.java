@@ -16,21 +16,23 @@ public class BM25Scorer extends AScorer {
     /*
      *  TODO: You will want to tune these values
      */
-    double urlweight = 0.1;
-    double titleweight = 0.1;
-    double bodyweight = 0.1;
-    double headerweight = 0.1;
-    double anchorweight = 0.1;
+
+    double anchorweight = 10;
+    double urlweight    = 9;
+    double titleweight  = 8;
+    double headerweight = 7;
+    double bodyweight   = 5;
 
     // BM25-specific weights
-    double burl = 0.1;
-    double btitle = 0.1;
+    double burl    = 0.6;
+    double btitle  = 0.4;
     double bheader = 0.1;
-    double bbody = 0.1;
-    double banchor = 0.1;
+    double bbody   = 0.1;
+    double banchor = 1.3;
 
-    double k1 = 0.1;
-    double pageRankLambda = 0.1;
+    double b                   = 0.75;
+    double k1                  = 1.75;
+    double pageRankLambda      = 0.1;
     double pageRankLambdaPrime = 0.1;
 
     // query -> url -> document
@@ -155,7 +157,22 @@ public class BM25Scorer extends AScorer {
              * each field (body, url, title, header, anchor)
              */
 
-            // do document length nomalization -- see page 24 in the BM25 handout
+            // do document length normalization -- see page 24 in the BM25 handout
+
+            for (Document d : lengths.keySet()) {
+
+                if (!lengths.get(d).containsKey(tfType)) {
+                    continue;
+                }
+
+                double dl = lengths.get(d).get(tfType);
+                double avdl = avgLengths.get(tfType);
+
+                double B = (1 - b) + (b*(dl / avdl));
+                lengths.get(d).put(tfType, B);
+
+            }
+
         }
 
     }
