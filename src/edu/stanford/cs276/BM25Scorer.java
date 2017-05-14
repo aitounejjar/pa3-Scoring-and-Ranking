@@ -171,11 +171,11 @@ public class BM25Scorer extends AScorer {
 
         double score = 0.0;
     
-    /*
-     * TODO : Your code here
-     * Use equation 5 in the writeup to compute the overall score
-     * of a document d for a query q.
-     */
+        /*
+         * TODO : Your code here
+         * Use equation 5 in the writeup to compute the overall score
+         * of a document d for a query q.
+         */
 
         return score;
     }
@@ -188,11 +188,38 @@ public class BM25Scorer extends AScorer {
      * @param q   the Query
      */
     public void normalizeTFs(Map<String, Map<String, Double>> tfs, Document d, Query q) {
-  /*
-   * TODO : Your code here
-   * Use equation 3 in the writeup to normalize the raw term frequencies
-   * in fields in document d.
-   */
+
+      /*
+       * TODO : Your code here
+       * Use equation 3 in the writeup to normalize the raw term frequencies
+       * in fields in document d.
+       */
+
+        for (String section : tfs.keySet()) {
+            // query word -> num of its occurrences in the section
+            Map<String, Double> map = tfs.get(section);
+            double bWeight = getSectionBWeight(section);
+            for (String queryWord : map.keySet()) {
+
+                double numOccurrences = map.get(queryWord);
+
+                // length of the section in the document
+                double length = lengths.get(d).get(section);
+
+                // average length for the section
+                double averageLength = avgLengths.get(section);
+
+                // field dependant normalized term frequency
+                double fdtf = numOccurrences / (1 + (bWeight * ( (length / averageLength) - 1 )));
+
+                tfs.get(section).put(queryWord, fdtf);
+
+            }
+
+        }
+
+
+
     }
 
     /**
@@ -247,6 +274,19 @@ public class BM25Scorer extends AScorer {
         // You should NOT modify the writeParaValues method.
         writeParaValues("bm25Para.txt");
         return getNetScore(tfs, q, tfQuery, d);
+    }
+
+    private double getSectionBWeight(String section) {
+        double sectionBWeight;
+        switch (section) {
+            case "url"      : sectionBWeight = burl;    break;
+            case "title"    : sectionBWeight = btitle;  break;
+            case "body"     : sectionBWeight = bbody;   break;
+            case "header"   : sectionBWeight = bheader; break;
+            case "anchor"   : sectionBWeight = banchor; break;
+            default         : throw new RuntimeException("Illegal section type of '" + section + "' was found in the tfs map.");
+        }
+        return sectionBWeight;
     }
 
 }
