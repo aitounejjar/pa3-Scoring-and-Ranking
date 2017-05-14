@@ -154,6 +154,8 @@ public class BM25Scorer extends AScorer {
              * Normalize lengths to get average lengths for
              * each field (body, url, title, header, anchor)
              */
+
+            // do document length nomalization -- see page 24 in the BM25 handout
         }
 
     }
@@ -176,6 +178,20 @@ public class BM25Scorer extends AScorer {
          * Use equation 5 in the writeup to compute the overall score
          * of a document d for a query q.
          */
+
+        for (String t : q.queryWords) {
+
+            /* compute W(d,t) in equation (4) */
+            double w_dt = 0; //TBD
+
+
+            /* compute equation (5) for the term t */
+            double idf = idfs.containsKey(t) ? idfs.get(t) : idfs.get(LoadHandler.UNSEEN_TERM_ID);
+            double part1 = (w_dt / (w_dt + k1)) * idf;
+            double part2 = pageRankLambda * Vj(d);
+
+            score += part1 + part2;
+        }
 
         return score;
     }
@@ -287,6 +303,10 @@ public class BM25Scorer extends AScorer {
             default         : throw new RuntimeException("Illegal section type of '" + section + "' was found in the tfs map.");
         }
         return sectionBWeight;
+    }
+
+    private double Vj(Document d) {
+        return Math.log(d.page_rank);
     }
 
 }
