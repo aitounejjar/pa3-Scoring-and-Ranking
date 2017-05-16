@@ -95,7 +95,7 @@ public abstract class AScorer {
      */
     public Map<String, Map<String, Double>> getDocTermFreqs(Document d, Query q) {
 
-        // Map from (tf type) -> [(queryWord -> score)]
+        // Map from (tf type) -> [(queryWord -> numOccurrences)]
         Map<String, Map<String, Double>> tfs = new HashMap<>();
         tfs.put("url", new HashMap<>());
         tfs.put("title", new HashMap<>());
@@ -120,22 +120,21 @@ public abstract class AScorer {
 
             queryWord = queryWord.toLowerCase();
 
-            // url counts
-            if (tfs.get("url").get(queryWord) != null) {
-                double numOccurrences = countOccurrences(queryWord, d.url);
-                tfs.get("url").put(queryWord, numOccurrences);
-
+            if (queryWord.equals("music")) {
+                int sdf=0;
             }
+
+            // url counts
+            double numOccurrences = countOccurrences(queryWord, d.url);
+            tfs.get("url").put(queryWord, numOccurrences);
 
             // title counts
-            if (tfs.get("title").get(queryWord) != null) {
-                double numOccurrences = countOccurrences(queryWord, d.title);
-                tfs.get("title").put(queryWord, numOccurrences);
-            }
+            numOccurrences = countOccurrences(queryWord, d.title);
+            tfs.get("title").put(queryWord, numOccurrences);
 
             // body counts
             if (d.body_hits != null) {
-                double numOccurrences = 0;
+                numOccurrences = 0;
                 if (d.body_hits.keySet().contains(queryWord)) {
                     numOccurrences = d.body_hits.get(queryWord).size();
                     tfs.get("body").put(queryWord, numOccurrences);
@@ -145,7 +144,7 @@ public abstract class AScorer {
             // header counts
             List<String> headers = d.headers;
             if (headers != null) {
-                double numOccurrences = 0;
+                numOccurrences = 0;
                 for (String header : headers) {
                     numOccurrences += countOccurrences(queryWord, header);
                 }
@@ -154,11 +153,8 @@ public abstract class AScorer {
 
             // anchor counts
             Map<String, Integer> anchors = d.anchors;
-
-
-
             if (anchors != null) {
-                double numOccurrences = 0;
+                numOccurrences = 0;
                 for (String anchor : anchors.keySet()) {
                     int anchorCount = anchors.get(anchor);
                     numOccurrences += (anchorCount * countOccurrences(queryWord, anchor));
