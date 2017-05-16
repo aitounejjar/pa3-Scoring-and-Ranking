@@ -120,10 +120,6 @@ public abstract class AScorer {
 
             queryWord = queryWord.toLowerCase();
 
-            if (queryWord.equals("music")) {
-                int sdf=0;
-            }
-
             // url counts
             double numOccurrences = countOccurrences(queryWord, d.url);
             tfs.get("url").put(queryWord, numOccurrences);

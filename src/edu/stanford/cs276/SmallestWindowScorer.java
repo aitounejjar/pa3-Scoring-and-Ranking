@@ -18,7 +18,7 @@ import java.util.Set;
  */
 public class SmallestWindowScorer extends CosineSimilarityScorer {
 
-    private static final double BOOST_FACTOR = 5.0;
+    private static final double BOOST_FACTOR = 4.0;
 
 
     public SmallestWindowScorer(Map<String, Double> idfs, Map<Query, Map<String, Document>> queryDict) {
@@ -69,7 +69,6 @@ public class SmallestWindowScorer extends CosineSimilarityScorer {
             }
         }
 
-
         Collections.sort(windows);
 
         return windows.get(0);
@@ -94,18 +93,18 @@ public class SmallestWindowScorer extends CosineSimilarityScorer {
         double boostScore;
 
         if (smallestWindow == q.queryWords.size()) {
-            boostScore = BOOST_FACTOR * smallestWindow;
+            boostScore = smallestWindow;
         } else if (smallestWindow == Integer.MAX_VALUE) {
             boostScore = 1.0;
         } else {
-            boostScore = smallestWindow * getBoostScore_helper(smallestWindow);
+            boostScore = 2 + getBoostScore_helper(smallestWindow);
         }
 
         return boostScore;
     }
 
     private double getBoostScore_helper(int smallestWindow) {
-        return 1.0/smallestWindow;
+        return 1.0 / (smallestWindow);
     }
 
     @Override
