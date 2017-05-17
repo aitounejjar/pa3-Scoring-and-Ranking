@@ -18,13 +18,8 @@ import java.util.Set;
  */
 public class SmallestWindowScorer extends CosineSimilarityScorer {
 
-    private static final double BOOST_FACTOR = 1.2;
-    double urlweight            = 11;
-    double titleweight          = 10;
-    double headerweight         = 99;
-    double anchorweight         = 8;
-    double bodyweight           = 9;
-    double smoothingBodyLength  = 1000;
+    private static final double BOOST_FACTOR = 4.0;
+    private static final double CUT_OFF = 60.0;
 
     public SmallestWindowScorer(Map<String, Double> idfs, Map<Query, Map<String, Document>> queryDict) {
         super(idfs);
@@ -93,29 +88,38 @@ public class SmallestWindowScorer extends CosineSimilarityScorer {
          *
          */
 
+        int querySize = q.queryWords.size();
+
+        if (querySize == 1) {
+            return 1.0;
+        }
+
         int smallestWindow = getWindow(d, q);
 
         double boostScore;
 
-        if (smallestWindow == q.queryWords.size()) {
-            boostScore = BOOST_FACTOR;
-        } else if (smallestWindow == Integer.MAX_VALUE) {
+        if (smallestWindow == Integer.MAX_VALUE) {
             boostScore = 1;
+        } else if (smallestWindow == querySize) {
+            boostScore = BOOST_FACTOR * smallestWindow;
         } else {
-            if(smallestWindow>50){
-                boostScore = 1;
-                //boostScore = BOOST_FACTOR - getBoostScore_helper(smallestWindow)/q.queryWords.size();
-            }else {
-
-                boostScore = BOOST_FACTOR - getBoostScore_helper(smallestWindow)/q.queryWords.size();
-            }
+            int delta = smallestWindow - querySize;
+            boostScore = getBoostScore_helper(delta);
         }
 
         return boostScore;
     }
 
-    private double getBoostScore_helper(int smallestWindow) {
-        return 1.0 / (smallestWindow);
+    private double getBoostScore_helper(int x) {
+        double d;
+        if (x > CUT_OFF) {
+            d = 1.0;
+        } else {
+            d = Math.abs(10.0 + ((1.0 - ((Math.pow(x,2)) / CUT_OFF)) * BOOST_FACTOR));
+            d = Math.sqrt(d);
+        }
+
+        return d;
     }
 
     @Override
@@ -140,6 +144,7 @@ public class SmallestWindowScorer extends CosineSimilarityScorer {
 
         // all query words appear in the passed strings
         String[] tokens = string.split("\\W+");
+
         Map<String, List<Integer>> positions = new HashMap<>();
         for (int i=0; i<tokens.length; ++i) {
             String token = tokens[i];
@@ -149,7 +154,12 @@ public class SmallestWindowScorer extends CosineSimilarityScorer {
             positions.get(token).add(i);
         }
 
-        return -1;
+        List<List<Integer>> lists = new ArrayList<>();
+        for (String k : positions.keySet()) {
+            lists.add(positions.get(k));
+        }
+
+        return computeSmallestWindow(lists);
     }
 
     private int computeSmallestWindow(List<List<Integer>> positions) {
