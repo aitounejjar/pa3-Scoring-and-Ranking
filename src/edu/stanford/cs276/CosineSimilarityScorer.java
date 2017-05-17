@@ -17,12 +17,12 @@ public class CosineSimilarityScorer extends AScorer {
      * the weights for each field.
      */
 
-    double urlweight            = 9;
-    double titleweight          = 8;
-    double headerweight         = 7;
-    double anchorweight         = 10;
+    double urlweight            = 11;
+    double titleweight          = 10;
+    double headerweight         = 5;
+    double anchorweight         = 8;
     double bodyweight           = 5;
-    double smoothingBodyLength  = 1000;
+    double smoothingBodyLength  = 10000;
 
     /**
      * Construct a Cosine Similarity Scorer.
@@ -54,6 +54,8 @@ public class CosineSimilarityScorer extends AScorer {
 
         double queryLength = 0.0;
         double documentLength = 0.0;
+
+
         for (String term : q.queryWords) {
 
             // compute the tf-idf weight of the term (weight = tf x idf)
@@ -181,4 +183,8 @@ public class CosineSimilarityScorer extends AScorer {
         }
         return sectionWeight;
     }
+
+
+
+
 }

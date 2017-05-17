@@ -17,23 +17,23 @@ public class BM25Scorer extends AScorer {
      *  TODO: You will want to tune these values
      */
 
-    double anchorweight = 10;
-    double urlweight    = 9;
-    double titleweight  = 8;
-    double headerweight = 7;
-    double bodyweight   = 5;
+    double anchorweight = 0.8; //1
+    double urlweight    = 1.1; //.9
+    double titleweight  = .7; //.8
+    double headerweight = .5; //.7
+    double bodyweight   = .5; //.5
 
     // BM25-specific weights
-    double burl    = 0.6;
-    double btitle  = 0.4;
-    double bheader = 0.1;
+    double burl    = 1.1;
+    double btitle  = 0.6;
+    double bheader = 0.4;
     double bbody   = 0.1;
-    double banchor = 1.3;
+    double banchor = 1.0;
 
     double b                   = 0.75;
-    double k1                  = 1.75;
-    double pageRankLambda      = 0.1;
-    double pageRankLambdaPrime = 0.1;
+    double k1                  = 1.7;
+    double pageRankLambda      = 8.0;
+    double pageRankLambdaPrime = 9.5;
 
     // query -> url -> document
     Map<Query, Map<String, Document>> queryDict;
@@ -213,11 +213,13 @@ public class BM25Scorer extends AScorer {
             /* compute equation (5) for the term t */
             double idf = idfs.containsKey(t) ? idfs.get(t) : idfs.get(LoadHandler.UNSEEN_TERM_ID);
             double part1 = (w_dt / (w_dt + k1)) * idf;
-            double part2 = pageRankLambda * Vj(d);
+            //double part2 = pageRankLambda * Vj(d);
 
-            score += part1 + part2;
+            //score += part1 + part2;
+            score += part1;
         }
-
+        double part2 = pageRankLambda * Vj(d);
+        score +=  part2;
         return score;
     }
 

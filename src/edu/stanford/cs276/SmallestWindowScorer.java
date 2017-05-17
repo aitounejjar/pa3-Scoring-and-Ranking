@@ -18,8 +18,13 @@ import java.util.Set;
  */
 public class SmallestWindowScorer extends CosineSimilarityScorer {
 
-    private static final double BOOST_FACTOR = 4.0;
-
+    private static final double BOOST_FACTOR = 1.2;
+    double urlweight            = 11;
+    double titleweight          = 10;
+    double headerweight         = 99;
+    double anchorweight         = 8;
+    double bodyweight           = 9;
+    double smoothingBodyLength  = 1000;
 
     public SmallestWindowScorer(Map<String, Double> idfs, Map<Query, Map<String, Document>> queryDict) {
         super(idfs);
@@ -93,11 +98,17 @@ public class SmallestWindowScorer extends CosineSimilarityScorer {
         double boostScore;
 
         if (smallestWindow == q.queryWords.size()) {
-            boostScore = smallestWindow;
+            boostScore = BOOST_FACTOR;
         } else if (smallestWindow == Integer.MAX_VALUE) {
-            boostScore = 1.0;
+            boostScore = 1;
         } else {
-            boostScore = 2 + getBoostScore_helper(smallestWindow);
+            if(smallestWindow>50){
+                boostScore = 1;
+                //boostScore = BOOST_FACTOR - getBoostScore_helper(smallestWindow)/q.queryWords.size();
+            }else {
+
+                boostScore = BOOST_FACTOR - getBoostScore_helper(smallestWindow)/q.queryWords.size();
+            }
         }
 
         return boostScore;

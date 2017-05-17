@@ -162,7 +162,43 @@ public abstract class AScorer {
         return tfs;
     }
 
+    private String getStemmedWord(String preStem) {
+        Stemmer s = new Stemmer();
+
+        char[] ch = preStem.toCharArray();
+        for (int c = 0; c < preStem.length(); c++) s.add(ch[c]);
+
+        s.stem();
+
+        String u;
+       /* and now, to test toString() : */
+        u = s.toString();
+                      /* to test getResultBuffer(), getResultLength() : */
+                      /* u = new String(s.getResultBuffer(), 0, s.getResultLength()); */
+
+        //System.out.print(u);
+
+        return u;
+    }
+
+
     private int countOccurrences(String pattern, String string) {
+        pattern = getStemmedWord(pattern);
+
+        String[] words = string.split("\\W+");
+        int count = 0;
+        for(String word:words)
+        {
+            String ws = getStemmedWord(word);
+            if(ws.contains(pattern)) {
+                ++count;
+            }
+        }
+
+        return count;
+    }
+
+    private int countOccurrences_old(String pattern, String string) {
         int count = 0;
         while (string.contains(pattern)) {
             ++count;
