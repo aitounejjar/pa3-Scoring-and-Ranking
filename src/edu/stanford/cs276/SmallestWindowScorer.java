@@ -88,7 +88,8 @@ public class SmallestWindowScorer extends CosineSimilarityScorer {
          *
          */
 
-        int querySize = q.queryWords.size();
+        // number of unique words in the query
+        int querySize = new HashSet<>(q.queryWords).size();
 
         if (querySize == 1) {
             return 1.0;

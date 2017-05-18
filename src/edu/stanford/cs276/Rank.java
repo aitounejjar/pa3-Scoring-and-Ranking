@@ -44,7 +44,7 @@ public class Rank {
             // feel free to change this to match your cosine scorer if you choose to build on top of that instead
             scorer = new SmallestWindowScorer(idfs, queryDict);
         } else if (scoreType.equals("extra")) {
-            scorer = new ExtraCreditScorer(idfs);
+            scorer = new ExtraCreditScorer(idfs, queryDict);
         }
         // ranking result Map.
         Map<Query, List<Document>> queryRankings = new HashMap<Query, List<Document>>();
