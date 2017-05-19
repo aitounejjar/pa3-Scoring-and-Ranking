@@ -20,8 +20,8 @@ import java.util.Set;
  */
 public class SmallestWindowScorer extends CosineSimilarityScorer {
 
-    protected static final double BOOST_FACTOR = 1.13;
-    protected static final double CUT_OFF = 56.0;
+    protected static final double BOOST_FACTOR = 2;
+    protected static final double CUT_OFF = 9.0;
 
 
     public SmallestWindowScorer(Map<String, Double> idfs, Map<Query, Map<String, Document>> queryDict) {
