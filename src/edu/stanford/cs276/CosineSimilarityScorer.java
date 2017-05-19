@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Map;
+import java.util.HashMap;
 
 /**
  * Skeleton code for the implementation of a
@@ -17,12 +18,12 @@ public class CosineSimilarityScorer extends AScorer {
      * the weights for each field.
      */
 
-    double urlweight            = 11;
+    double urlweight            = 10;
     double titleweight          = 10;
-    double headerweight         = 5;
+    double headerweight         = 7;
     double anchorweight         = 8;
-    double bodyweight           = 5;
-    double smoothingBodyLength  = 10000;
+    double bodyweight           = .6;
+    double smoothingBodyLength  = 15000;
 
     /**
      * Construct a Cosine Similarity Scorer.
@@ -31,7 +32,11 @@ public class CosineSimilarityScorer extends AScorer {
      */
     public CosineSimilarityScorer(Map<String, Double> idfs) {
         super(idfs);
+
+
+
     }
+
 
     /**
      * Get the net score for a query and a document.

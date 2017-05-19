@@ -13,6 +13,8 @@ import java.util.Map;
  */
 public class ExtraCreditScorer extends SmallestWindowScorer {
 
+    private static final double PageRankW = .000001;
+
     /**
      * Constructs a scorer for Extra Credit.
      *
@@ -21,18 +23,30 @@ public class ExtraCreditScorer extends SmallestWindowScorer {
     public ExtraCreditScorer(Map<String, Double> idfs, Map<Query, Map<String, Document>> queryDict) {
         super(idfs, queryDict);
         Map<String, Double> idfs2 = new HashMap<>();
+        Map<String, Integer> idfsCount = new HashMap<>();
+
+        /*
         for(String word: idfs.keySet()){
             double CurrentCount = idfs.get(word);
             double StemmerCount = 0;
             String StemmedWord = StemmingUtils.getStemmedWord(word);
+            int UniqueWords = 0;
             if (idfs2.containsKey(StemmedWord)){
                 StemmerCount = idfs2.get(StemmedWord);
+                UniqueWords = idfsCount.get(StemmedWord); //How many other words point to this stemmed word
+
             }
             idfs2.put(StemmedWord, CurrentCount + StemmerCount);
+            idfsCount.put(StemmedWord, UniqueWords+1);
         }
-
+        for(String word: idfs2.keySet()){
+            double totalCount = idfs2.get(word);
+            int wordCount = idfsCount.get(word);
+            idfs2.put(word, (totalCount/wordCount));
+        }
         idfs=null;
         this.idfs=idfs2;
+        */
     }
 
     @Override
@@ -65,4 +79,18 @@ public class ExtraCreditScorer extends SmallestWindowScorer {
         return boostScore;
 
     }
+    @Override
+    public double getSimScore(Document d, Query q) {
+        Map<String, Map<String, Double>> tfs = this.getDocTermFreqs(d, q);
+        this.normalizeTFs(tfs, d, q);
+        Map<String, Double> tfQuery = getQueryFreqs(q);
+        double boost = getBoostScore(d, q);
+        double rawScore = this.getNetScore(tfs, q, tfQuery, d);
+
+        double goodness = Math.log(d.page_rank)*PageRankW;
+
+        return ( (boost * rawScore) + goodness );
+    }
+
 }
+

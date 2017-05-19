@@ -20,8 +20,9 @@ import java.util.Set;
  */
 public class SmallestWindowScorer extends CosineSimilarityScorer {
 
-    protected static final double BOOST_FACTOR = 4.0;
-    protected static final double CUT_OFF = 60.0;
+    protected static final double BOOST_FACTOR = 1.13;
+    protected static final double CUT_OFF = 56.0;
+
 
     public SmallestWindowScorer(Map<String, Double> idfs, Map<Query, Map<String, Document>> queryDict) {
         super(idfs);
@@ -37,7 +38,6 @@ public class SmallestWindowScorer extends CosineSimilarityScorer {
     /*
      * @//TODO : Your code here
      */
-
         List<Pair<Integer, Integer>> windows = new ArrayList<>();
         windows.add(new Pair(Integer.MAX_VALUE, 0));
 
@@ -114,12 +114,13 @@ public class SmallestWindowScorer extends CosineSimilarityScorer {
         double boostScore;
 
         if (smallestWindow == Integer.MAX_VALUE) {
-            boostScore = 1;
+            boostScore = 1.0;
         } else if (smallestWindow == querySize) {
             boostScore = BOOST_FACTOR * smallestWindow;
         } else {
             int delta = smallestWindow - querySize;
             boostScore = getBoostScore_helper(delta);
+
         }
 
         return boostScore;
@@ -144,7 +145,8 @@ public class SmallestWindowScorer extends CosineSimilarityScorer {
         Map<String, Double> tfQuery = getQueryFreqs(q);
         double boost = getBoostScore(d, q);
         double rawScore = this.getNetScore(tfs, q, tfQuery, d);
-        return boost * rawScore;
+
+        return ( (boost * rawScore) );
     }
 
 
