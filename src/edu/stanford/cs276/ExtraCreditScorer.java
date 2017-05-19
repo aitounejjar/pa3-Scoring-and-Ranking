@@ -1,8 +1,10 @@
 package edu.stanford.cs276;
 
+import edu.stanford.cs276.util.Pair;
 import edu.stanford.cs276.util.StemmingUtils;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 /**
@@ -34,20 +36,33 @@ public class ExtraCreditScorer extends SmallestWindowScorer {
     }
 
     @Override
-    /**
-     * Get the awesome similarity score using the ranking
-     * algorithm you have derived incorporating other
-     * signals indicating relevance of a doc to a query.
-     * @param d the Document
-     * @param q the Query
-     * @return the similarity score
-     */
-    public double getSimScore(Document d, Query q) {
-    /*
-     * TODO : Your code here
-     */
+    protected double getBoostScore(Document d, Query q) {
+        // same logic as the the overridden method, with the exception that here we make use of the number of times
+        // the smallest window was found
 
-        return super.getSimScore(d,q);
+        // number of unique words in the query
+        int querySize = new HashSet<>(q.queryWords).size();
+
+        if (querySize == 1) {
+            return 1.0;
+        }
+
+        Pair<Integer, Integer> pair = getWindow(d, q);
+        int smallestWindow = pair.getFirst();
+        int smallestWindowCount = pair.getSecond();
+
+        double boostScore;
+
+        if (smallestWindow == Integer.MAX_VALUE) {
+            boostScore = 1;
+        } else if (smallestWindow == querySize) {
+            boostScore = BOOST_FACTOR * smallestWindow * smallestWindowCount;
+        } else {
+            int delta = smallestWindow - querySize;
+            boostScore = getBoostScore_helper(delta);
+        }
+
+        return boostScore;
+
     }
-
 }

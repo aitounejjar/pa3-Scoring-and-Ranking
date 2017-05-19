@@ -1,9 +1,11 @@
 package edu.stanford.cs276;
 
 import edu.stanford.cs276.util.Assert;
+import edu.stanford.cs276.util.Pair;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -18,8 +20,8 @@ import java.util.Set;
  */
 public class SmallestWindowScorer extends CosineSimilarityScorer {
 
-    private static final double BOOST_FACTOR = 4.0;
-    private static final double CUT_OFF = 60.0;
+    protected static final double BOOST_FACTOR = 4.0;
+    protected static final double CUT_OFF = 60.0;
 
     public SmallestWindowScorer(Map<String, Double> idfs, Map<Query, Map<String, Document>> queryDict) {
         super(idfs);
@@ -31,45 +33,56 @@ public class SmallestWindowScorer extends CosineSimilarityScorer {
      * @param d: document
      * @param q: query
      */
-    private int getWindow(Document d, Query q) {
+    protected Pair<Integer, Integer> getWindow(Document d, Query q) {
     /*
      * @//TODO : Your code here
      */
 
-        List<Integer> windows = new ArrayList<>();
-        windows.add(Integer.MAX_VALUE);
+        List<Pair<Integer, Integer>> windows = new ArrayList<>();
+        windows.add(new Pair(Integer.MAX_VALUE, 0));
 
         // compute smallest window for the body
         if (d.body_hits != null) {
             List<List<Integer>> positions = new ArrayList<>(d.body_hits.values());
             if (positions.size() == q.queryWords.size()) {
                 // all query words appear in the body
-                int window = computeSmallestWindow(positions);
-                windows.add(window);
+                int[] window = computeSmallestWindow(positions);
+                windows.add(new Pair<>(window[0], window[1]));
             }
         }
 
         // compute smallest window for url
-        windows.add(computeSmallestWindow(d.url, q));
+        int[] window = computeSmallestWindow(d.url, q);
+        windows.add(new Pair<>(window[0], window[1]));
 
         // compute smallest window for title
-        windows.add(computeSmallestWindow(d.title, q));
+        window = computeSmallestWindow(d.title, q);
+        windows.add(new Pair<>(window[0], window[1]));
 
         // compute smallest window for headers
         if (d.headers != null) {
             for (String header : d.headers) {
-                windows.add(computeSmallestWindow(header, q));
+                window = computeSmallestWindow(header, q);
+                windows.add(new Pair<>(window[0], window[1]));
             }
         }
 
         // compute smallest window for anchors
         if (d.anchors != null) {
             for (String header : d.anchors.keySet()) {
-                windows.add(computeSmallestWindow(header, q));
+                window = computeSmallestWindow(header, q);
+                windows.add(new Pair<>(window[0], window[1]));
             }
         }
 
-        Collections.sort(windows);
+        Collections.sort(windows, new Comparator<Pair<Integer, Integer>>() {
+            @Override
+            public int compare(Pair<Integer, Integer> o1, Pair<Integer, Integer> o2) {
+                Integer w1 = o1.getFirst();
+                Integer w2 = o2.getFirst();
+                return w1.compareTo(w2);
+            }
+        });
 
         return windows.get(0);
     }
@@ -81,7 +94,7 @@ public class SmallestWindowScorer extends CosineSimilarityScorer {
      * @param d: document
      * @param q: query
      */
-    private double getBoostScore(Document d, Query q) {
+    protected double getBoostScore(Document d, Query q) {
 
         /*
          * @//TODO : Your code here, calculate the boost score.
@@ -95,7 +108,8 @@ public class SmallestWindowScorer extends CosineSimilarityScorer {
             return 1.0;
         }
 
-        int smallestWindow = getWindow(d, q);
+        Pair<Integer, Integer> pair = getWindow(d, q);
+        int smallestWindow = pair.getFirst();
 
         double boostScore;
 
@@ -111,7 +125,7 @@ public class SmallestWindowScorer extends CosineSimilarityScorer {
         return boostScore;
     }
 
-    private double getBoostScore_helper(int x) {
+    protected double getBoostScore_helper(int x) {
         double d;
         if (x > CUT_OFF) {
             d = 1.0;
@@ -133,13 +147,23 @@ public class SmallestWindowScorer extends CosineSimilarityScorer {
         return boost * rawScore;
     }
 
-    private int computeSmallestWindow(String string, Query q) {
-        int smallestWindow = Integer.MAX_VALUE;
-        int count = 0;
 
+    /**
+     *
+     * Returns a two-elements int array, where first element is the smallest window, and the second is
+     * the number of times this smallest window was encountered
+     *
+     * @param string String in which to look for the smallest window
+     * @param q      query
+     * @return       int array
+     */
+    private int[] computeSmallestWindow(String string, Query q) {
+        int smallestWindow = Integer.MAX_VALUE;
+
+        // smallest window is infinity, if there is a single query word that doesn't appear in the string
         for (String w : q.queryWords) {
             if (!string.contains(w)) {
-                return smallestWindow;
+                return new int[] {smallestWindow, 0};
             }
         }
 
@@ -163,7 +187,7 @@ public class SmallestWindowScorer extends CosineSimilarityScorer {
         return computeSmallestWindow(lists);
     }
 
-    private int computeSmallestWindow(List<List<Integer>> positions) {
+    private int[] computeSmallestWindow(List<List<Integer>> positions) {
 
         // pre-processing: put a mapping from the minimums to the list which they came from
         Map<Integer, List<Integer>> map = new HashMap<>();
@@ -181,6 +205,7 @@ public class SmallestWindowScorer extends CosineSimilarityScorer {
         }
 
         int smallestWindow = computeSmallestWindow_helper(map.keySet());
+        int smallestWindowCount = 1; // tracks how many times the smallest window was found
 
         while (true) {
             if (smallestWindow == positions.size() || allListsTraversed(map)) {
@@ -211,11 +236,14 @@ public class SmallestWindowScorer extends CosineSimilarityScorer {
 
             if (possibleSmallestWindow < smallestWindow) {
                 smallestWindow = possibleSmallestWindow;
+                smallestWindowCount = 1; // reset the count because a new smallest window was found
+            } else if (possibleSmallestWindow == smallestWindow) {
+                smallestWindowCount++;
             }
 
         }
 
-        return smallestWindow;
+        return new int[] {smallestWindow, smallestWindowCount};
 
     }
 
