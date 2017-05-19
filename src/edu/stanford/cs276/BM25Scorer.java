@@ -17,26 +17,26 @@ public class BM25Scorer extends AScorer {
      *  TODO: You will want to tune these values
      */
 
-    double anchorweight = 0.8; //1
-    double urlweight    = 1.1; //.9
-    double titleweight  = .7; //.8
-    double headerweight = .5; //.7
-    double bodyweight   = .5; //.5
+    final double anchorweight = 0.8; //1
+    final double urlweight    = 1.1; //.9
+    final double titleweight  = .7; //.8
+    final double headerweight = .5; //.7
+    final double bodyweight   = .5; //.5
 
     // BM25-specific weights
-    double burl    = 1.1;
-    double btitle  = 0.6;
-    double bheader = 0.4;
-    double bbody   = 0.1;
-    double banchor = 1.0;
+    final double burl    = 1.1;
+    final double btitle  = 0.6;
+    final double bheader = 0.4;
+    final double bbody   = 0.1;
+    final double banchor = 1.0;
 
-    double b                   = 0.75;
-    double k1                  = 1.7;
-    double pageRankLambda      = 8.0;
-    double pageRankLambdaPrime = 9.5;
+    final double b                   = 0.75;
+    final double k1                  = 1.7;
+    final double pageRankLambda      = 8.0;
+    final double pageRankLambdaPrime = 9.5;
 
     // query -> url -> document
-    Map<Query, Map<String, Document>> queryDict;
+    final Map<Query, Map<String, Document>> queryDict;
 
     /* BM25 data structures--feel free to modify these */
 

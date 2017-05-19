@@ -132,7 +132,6 @@ public abstract class AScorer {
 
             // body counts
             if (d.body_hits != null) {
-                numOccurrences = 0;
                 if (d.body_hits.keySet().contains(queryWord)) {
                     numOccurrences = d.body_hits.get(queryWord).size();
                     tfs.get("body").put(queryWord, numOccurrences);

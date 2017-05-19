@@ -25,10 +25,10 @@ public class Query {
      * @return the Query as a String
      */
     public String toString() {
-        String str = "";
+        StringBuilder sb = new StringBuilder("");
         for (String word : queryWords) {
-            str += word + " ";
+            sb.append(word).append(" ");
         }
-        return str.trim();
+        return sb.toString().trim();
     }
 }
