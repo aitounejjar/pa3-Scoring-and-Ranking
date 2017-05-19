@@ -3,7 +3,6 @@ package edu.stanford.cs276;
 import edu.stanford.cs276.util.Pair;
 import edu.stanford.cs276.util.StemmingUtils;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
@@ -22,10 +21,12 @@ public class ExtraCreditScorer extends SmallestWindowScorer {
      */
     public ExtraCreditScorer(Map<String, Double> idfs, Map<Query, Map<String, Document>> queryDict) {
         super(idfs, queryDict);
+
+        /*
+
         Map<String, Double> idfs2 = new HashMap<>();
         Map<String, Integer> idfsCount = new HashMap<>();
 
-        /*
         for(String word: idfs.keySet()){
             double CurrentCount = idfs.get(word);
             double StemmerCount = 0;
@@ -39,13 +40,16 @@ public class ExtraCreditScorer extends SmallestWindowScorer {
             idfs2.put(StemmedWord, CurrentCount + StemmerCount);
             idfsCount.put(StemmedWord, UniqueWords+1);
         }
+
         for(String word: idfs2.keySet()){
             double totalCount = idfs2.get(word);
             int wordCount = idfsCount.get(word);
             idfs2.put(word, (totalCount/wordCount));
         }
+
         idfs=null;
         this.idfs=idfs2;
+
         */
     }
 
@@ -92,5 +96,21 @@ public class ExtraCreditScorer extends SmallestWindowScorer {
         return ( (boost * rawScore) + goodness );
     }
 
+    @Override
+    public int countOccurrences(String pattern, String string) {
+        pattern = StemmingUtils.getStemmedWord(pattern);
+
+        String[] words = string.split("\\W+");
+        int count = 0;
+        for(String word:words)
+        {
+            String ws = StemmingUtils.getStemmedWord(word);
+            if(ws.contains(pattern)) {
+                ++count;
+            }
+        }
+
+        return count;
+    }
 }
 

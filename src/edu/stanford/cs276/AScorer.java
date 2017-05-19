@@ -1,7 +1,5 @@
 package edu.stanford.cs276;
 
-import edu.stanford.cs276.util.StemmingUtils;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -166,30 +164,14 @@ public abstract class AScorer {
 
 
 
-    private int countOccurrences(String pattern, String string) {
-        if (this instanceof ExtraCreditScorer) {
-            pattern = StemmingUtils.getStemmedWord(pattern);
-
-            String[] words = string.split("\\W+");
-            int count = 0;
-            for(String word:words)
-            {
-                String ws = StemmingUtils.getStemmedWord(word);
-                if(ws.contains(pattern)) {
-                    ++count;
-                }
-            }
-
-            return count;
-        } else {
-            int count = 0;
-            while (string.contains(pattern)) {
-                ++count;
-                string = string.replaceFirst(pattern, "");
-            }
-
-            return count;
+    public int countOccurrences(String pattern, String string) {
+        int count = 0;
+        while (string.contains(pattern)) {
+            ++count;
+            string = string.replaceFirst(pattern, "");
         }
+
+        return count;
     }
 
 }
