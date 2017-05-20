@@ -176,7 +176,7 @@ public class SmallestWindowScorer extends CosineSimilarityScorer {
         for (int i=0; i<tokens.length; ++i) {
             String token = tokens[i];
             if (!positions.containsKey(token)) {
-                positions.put(token, new ArrayList<>());
+                positions.put(token, new ArrayList<Integer>());
             }
             positions.get(token).add(i);
         }

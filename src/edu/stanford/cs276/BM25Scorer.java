@@ -96,7 +96,7 @@ public class BM25Scorer extends AScorer {
                 // body
                 bodyWordsCount += document.body_length;
                 bodyCount++;
-                lengths.put(document, new HashMap<>());
+                lengths.put(document, new HashMap<String, Double>());
                 lengths.get(document).put("body", (double)document.body_length);
 
                 // header

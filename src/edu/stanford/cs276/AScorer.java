@@ -97,11 +97,11 @@ public abstract class AScorer {
 
         // Map from (tf type) -> [(queryWord -> numOccurrences)]
         Map<String, Map<String, Double>> tfs = new HashMap<>();
-        tfs.put("url", new HashMap<>());
-        tfs.put("title", new HashMap<>());
-        tfs.put("body", new HashMap<>());
-        tfs.put("header", new HashMap<>());
-        tfs.put("anchor", new HashMap<>());
+        tfs.put("url", new HashMap<String, Double>());
+        tfs.put("title", new HashMap<String, Double>());
+        tfs.put("body", new HashMap<String, Double>());
+        tfs.put("header", new HashMap<String, Double>());
+        tfs.put("anchor", new HashMap<String, Double>());
 
         /*
          * TODO : Your code here
